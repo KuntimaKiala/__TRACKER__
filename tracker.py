@@ -9,7 +9,7 @@ from shutil import rmtree as remove
 from constants import *
 from helper import undistort, featureExtraction, feature_extraction_KLT, draw_str 
 from pointmap import Map
-from frame import Frame
+from frame import Frame, match_frames
 
 
 
@@ -36,7 +36,7 @@ class Tracker() :
             if self._frame_id < self._init_ :
                 self._frame_id = self._init_
                 self.cam.set(cv2.CAP_PROP_POS_FRAMES, self._frame_id) 
-               
+              
 
             # read the frames 
             _ret, frame = self.cam.read()
@@ -50,25 +50,26 @@ class Tracker() :
 
                 p0 = np.float32([tr[-1] for tr in self.tracks]).reshape(-1, 1, 2) 
 
-                
-                
-
                 frame_obj = Frame(self._initial_frame, frame, self.mapp, p0, mask = []) 
-
+                
+               
                 if frame_obj.id == 0 :
                     self._initial_frame  = frame
+              
                     continue 
 
                 
                 img0, img1 = self.prev_gray, frame_gray 
 
                  
-                f2 = self.mapp.frames[-1]
-                f1 = self.mapp.frames[-2] 
-
+                
+                self.mapp.add_key_frame()
                 
 
-                print('p1 =', p0.shape)
+                
+                
+
+                
                 # p1 : points matching from previous image and the new one, using last points p0
                 p1, _st, _err = feature_extraction_KLT(img0, img1, p0, lk_params)
                

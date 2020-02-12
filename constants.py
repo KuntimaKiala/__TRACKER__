@@ -29,3 +29,7 @@ color = [(255,0,0),
 
 
 video ="/media/ExtHDD1.8T/DataSets/moove_acquisition_circuit_versaille_vedecom/DonneesVersailles/_AZIZ/DATA/1_000BABB442A8_20190502_094452/RecFile_1_20190502_094452_bypass_video_7_output_1.avi"
+
+nn_match_ratio = 0.4 
+MIN_MATCH_COUNT = 0
+inlier_threshold= 10

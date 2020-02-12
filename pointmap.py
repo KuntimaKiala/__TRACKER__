@@ -1,5 +1,7 @@
 
-
+from frame import match_frames
+import numpy as np
+from helper import Rating
 class Map() :
 
     def __init__(self) :
@@ -7,7 +9,11 @@ class Map() :
         self.max_frame = 0
         self.frames = []
         self.key_frames =  []
-        self.key_frames_id = 0 
+        self.r = Rating()
+        self.rate = 0.0
+        self.counter = 0
+        self.interval_remove_kf = 0
+
 
 
 
@@ -20,11 +26,29 @@ class Map() :
 
     def add_key_frame(self) :
         
-        # match first frame descriptor with the rest
-        # if you get less than  20% of match then remove all the point 
-        # in between add 1 to  key_frames_id
-
-        pass
 
 
+        
+        f1 = self.frames[-2]
+        f2 = self.frames[-1] 
+        
+        print(self.counter, self.interval_remove_kf + 5)
+        if self.counter > self.interval_remove_kf + 5 :
+            self.key_frames = [ x for i, x in enumerate(self.key_frames[:-1]) if i%2 != 0 ]
 
+            self.interval_remove_kf = len(self.key_frames)
+            self.counter = len(self.key_frames)
+            print('kF =', len(self.key_frames))
+        if self.rate < 20 :
+            self.r.start_rating = False
+            self.key_frames.append(f1) 
+            self.counter += 1
+
+        good, _, _, _ = match_frames(self.key_frames[-1], f2) 
+        self.rate = self.r.rate_of_point_matching(len(good))
+        
+        #print('rate =', self.rate)
+        
+
+
+        

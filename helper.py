@@ -3,6 +3,7 @@ import cv2 as cv
 import numpy as np
 from constants import lk_params, feature_params
 
+
 # contain all the helper functions, common-generics functions to all the project
 
 
@@ -65,3 +66,26 @@ def draw_str(dst, target, s):
     x, y = target
     cv.putText(dst, s, (x+1, y+1), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness = 2, lineType=cv.LINE_AA)
     cv.putText(dst, s, (x, y), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv.LINE_AA)
+
+
+
+class Rating() :
+
+  def __init__(self) :
+      self.nbKeypoints = [0]*2
+      self.start_rating = False
+
+  def rate_of_point_matching(self,nbKeypoints) :
+
+      if self.start_rating == False : 
+          self.nbKeypoints[0] = nbKeypoints
+          self.nbKeypoints[1] = nbKeypoints
+          self.start_rating = True
+
+      else :
+          self.nbKeypoints[1] = nbKeypoints
+
+
+      self.rate = self.nbKeypoints[1]*100.0/self.nbKeypoints[0]
+
+      return self.rate
