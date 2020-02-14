@@ -2,13 +2,14 @@
 
 
 import cv2 
+
 import numpy as np
 from copy import copy 
 from time import sleep
 from shutil import rmtree as remove
 from constants import *
-from helper import undistort, featureExtraction, feature_extraction_KLT, draw_str 
-from pointmap import Map
+from helper import undistort, featureExtraction, feature_extraction_KLT, draw_str, writting_file 
+from pointmap import Map, match_frame
 from frame import Frame, match_frames
 
 
@@ -25,6 +26,10 @@ class Tracker() :
         self._init_ = 5999
         self._frame_id = 0
         self.prev_gray = None
+        self._initial_frame = None
+        self.counter = 0
+        self.color_id = 0
+        self.c = 0
 
 
     def __process_frame__(self) :
@@ -42,7 +47,7 @@ class Tracker() :
             _ret, frame = self.cam.read()
 
             # remove distortions 
-            frame = undistort(frame,cameraMatrix, distCoeffs)
+            #frame = undistort(frame,cameraMatrix, distCoeffs)
             vis = frame.copy()
             frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY) 
            
@@ -52,7 +57,6 @@ class Tracker() :
 
                 frame_obj = Frame(self._initial_frame, frame, self.mapp, p0, mask = []) 
                 
-               
                 if frame_obj.id == 0 :
                     self._initial_frame  = frame
               
@@ -62,13 +66,15 @@ class Tracker() :
                 img0, img1 = self.prev_gray, frame_gray 
 
                  
-                
+                #f1 = self.mapp.frames[-2]
+                #f2 = self.mapp.frames[-1] 
+
+                #f1 = self.mapp.frames[-1]
+                #f2 = self.mapp.frames[-2]
+
+                #match_frame(f1,f2)
                 self.mapp.add_key_frame()
-                
-
-                
-                
-
+            
                 
                 # p1 : points matching from previous image and the new one, using last points p0
                 p1, _st, _err = feature_extraction_KLT(img0, img1, p0, lk_params)
@@ -80,23 +86,30 @@ class Tracker() :
                 d = abs(p0-p0r).reshape(-1, 2).max(-1)
                 
                 # requirement to keep following a track
-                good = d < 0.01
+ 
+                good = (d < 0.00899) & (d>0)
+
                 new_tracks = []
 
                 for tr, (x, y), good_flag in copy(zip(self.tracks, p1.reshape(-1, 2), good)):
                     if not good_flag:
                         continue
-
-                    tr.append((x, y))
+     
+                    tr.append((x, y)) 
                     
+                
                     if len(tr) > self.track_len:
                         del tr[0]
+                        
             
                     new_tracks.append(tr)
                     cv.circle(vis, (x, y), 2, (0, 255, 0), -1)
+
                 
-                self.tracks = new_tracks
-                cv.polylines(vis, [np.int32(tr) for tr in self.tracks], False, color[0]) #(0, 255, 0)
+                self.tracks = new_tracks 
+
+                
+                cv.polylines(vis, [np.int32(tr) for tr in self.tracks], False, color[self.color_id]) #(0, 255, 0)
                 draw_str(vis, (20, 20), 'track count: %d' % len(self.tracks))
                 
 
@@ -110,16 +123,19 @@ class Tracker() :
                 for x, y in [np.int32(tr[-1]) for tr in self.tracks]:
                     cv.circle(mask, (x, y), 5, 0, -1)
 
-                _,_, p = featureExtraction(frame_gray, mask)
+                p,_, _ = featureExtraction(frame_gray, mask)
                 
                 if p is not None:
                     for x, y in np.float32(p).reshape(-1, 2):
-                        self.tracks.append([(x, y)]) 
 
-                
+                        self.tracks.append([(x, y)]) 
+                    
+                self.color_id += 1
+
             # key board stroke
             ks = cv2.waitKey(1)
             if ks & 0xFF == ord('q') :
+
                 break
 
             if ks == 27 :

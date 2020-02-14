@@ -1,10 +1,10 @@
 
 import cv2
-from helper import feature_extraction_KLT, featureExtraction
+from helper import feature_extraction_KLT, featureExtraction, normalize
 from constants import lk_params, nn_match_ratio, MIN_MATCH_COUNT, inlier_threshold
 import numpy as np
 from math import sqrt
-
+from constants import cameraMatrix
 
 def match_frames(
                  f1, 
@@ -93,7 +93,8 @@ def match_frames(
 class Frame() :
 
     def __init__(self, img0,img1, mapp,px, mask, tid=None) : 
-        self.start_rating = False
+        self.start_rating = False 
+        self.K = cameraMatrix
         if img0 is not None : 
             
             gray_image0 = cv2.cvtColor(img0,cv2.COLOR_BGR2GRAY) 
@@ -115,3 +116,18 @@ class Frame() :
     def annotate(self, img) :
 
         pass
+
+
+    @property
+    def Kinv(self):
+        if not hasattr(self, '_Kinv'):
+            self._Kinv = np.linalg.inv(self.K)
+        return self._Kinv
+
+    # normalized keypoints
+    @property
+    def kps(self):
+        
+        if not hasattr(self, '_kps'):
+            self._kps = normalize(self.Kinv, self.kp)
+        return self._kps

@@ -5,8 +5,8 @@ lk_params = dict( winSize  = (15, 15),
                   maxLevel = 1,
                   criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03))
 
-feature_params = dict( maxCorners = 500,
-                       qualityLevel = 0.1,
+feature_params = dict( maxCorners = 50000,
+                       qualityLevel = 0.01,
                        minDistance = 15 )
 
 
@@ -33,3 +33,10 @@ video ="/media/ExtHDD1.8T/DataSets/moove_acquisition_circuit_versaille_vedecom/D
 nn_match_ratio = 0.4 
 MIN_MATCH_COUNT = 0
 inlier_threshold= 10
+
+
+
+CULLING_ERR_THRES = 0.02
+
+RANSAC_RESIDUAL_THRES = 0.02
+RANSAC_MAX_TRIALS = 10
